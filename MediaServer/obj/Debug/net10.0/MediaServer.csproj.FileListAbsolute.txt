@@ -1,0 +1,14 @@
+/Users/simon/RiderProjects/MediaServer/MediaServer/bin/Debug/net10.0/MediaServer
+/Users/simon/RiderProjects/MediaServer/MediaServer/bin/Debug/net10.0/MediaServer.deps.json
+/Users/simon/RiderProjects/MediaServer/MediaServer/bin/Debug/net10.0/MediaServer.runtimeconfig.json
+/Users/simon/RiderProjects/MediaServer/MediaServer/bin/Debug/net10.0/MediaServer.dll
+/Users/simon/RiderProjects/MediaServer/MediaServer/bin/Debug/net10.0/MediaServer.pdb
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.GeneratedMSBuildEditorConfig.editorconfig
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.AssemblyInfoInputs.cache
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.AssemblyInfo.cs
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.csproj.CoreCompileInputs.cache
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.dll
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/refint/MediaServer.dll
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.pdb
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.genruntimeconfig.cache
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/ref/MediaServer.dll
