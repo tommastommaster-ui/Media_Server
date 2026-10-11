@@ -12,3 +12,4 @@
 /Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.pdb
 /Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.genruntimeconfig.cache
 /Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/ref/MediaServer.dll
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.sourcelink.json
