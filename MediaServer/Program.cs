@@ -4,6 +4,23 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using MediaServer;
 
+//datenbank kurz
+
+string path = "/Users/simon/RiderProjects/MediaServer/MediaServer/usersDatenbank.json";
+
+var users = new List<RegisterNewUser>();
+if (File.Exists(path))
+{
+    users = JsonSerializer.Deserialize<List<RegisterNewUser>>(File.ReadAllText("usersDatenbank.json"));
+    
+    if (users == null)
+    {
+        users = new List<RegisterNewUser>();
+    }
+}
+
+
+
 var listner = new HttpListener();
 listner.Prefixes.Add("http://localhost:8080/");
 listner.Start();
@@ -25,7 +42,20 @@ while (true)
         await response.OutputStream.WriteAsync(buffer);
     }
 
-    if (request.HttpMethod == "POST")
+    if (request.HttpMethod == "POST" && request.Url!.AbsolutePath == "/api/users/register")
+    {
+        Console.WriteLine(request.ContentType);
+        var data = await JsonSerializer.DeserializeAsync<RegisterNewUser>(request.InputStream);
+        Console.WriteLine($"Username:{data?.Username}");
+        Console.Write($"Password:{data?.Password}");
+        users.Add(data);
+        var json = JsonSerializer.Serialize(users);
+        File.WriteAllText(path, json);
+        context.Response.Close();
+        
+    }
+    
+    if (request.HttpMethod == "POST" && request.Url!.AbsolutePath == "/api/users/login")
     {
         Console.WriteLine(request.ContentType);
         var data = await JsonSerializer.DeserializeAsync<RegisterNewUser>(request.InputStream);
