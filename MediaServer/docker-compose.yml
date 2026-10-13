@@ -1,0 +1,25 @@
+
+services:
+  db:
+    image: postgres:16
+    container_name: postgresSQl
+    environment:
+      POSTGRES_USER: mrp
+      POSTGRES_PASSWORD: 1234!
+      POSTGRES_DB: mrpdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - mrp-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  adminer:
+    image: adminer
+    container_name: mrp-adminer
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
+
+volumes:
+  mrp-data:

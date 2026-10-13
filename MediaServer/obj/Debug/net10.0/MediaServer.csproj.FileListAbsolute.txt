@@ -13,3 +13,8 @@
 /Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.genruntimeconfig.cache
 /Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/ref/MediaServer.dll
 /Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.sourcelink.json
+/Users/simon/RiderProjects/MediaServer/MediaServer/bin/Debug/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+/Users/simon/RiderProjects/MediaServer/MediaServer/bin/Debug/net10.0/Microsoft.Extensions.Logging.Abstractions.dll
+/Users/simon/RiderProjects/MediaServer/MediaServer/bin/Debug/net10.0/Npgsql.dll
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.csproj.AssemblyReference.cache
+/Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaSer.FD23F344.Up2Date
