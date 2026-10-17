@@ -6,7 +6,7 @@ using MediaServer;
 using Npgsql;
 
 //datenbank kurz
-const string dbConnect = "Host=localhost;Port=5432;Username=mrp;Password=1234!;Database=mrpdb";
+const string dbConnect = "Host=localhost;Port=5432;Username=postgres;Password=mysecretpassword;Database=postgres";
 
 string path = "/Users/simon/RiderProjects/MediaServer/MediaServer/usersDatenbank.json";
 
@@ -59,11 +59,24 @@ while (true)
         var json = JsonSerializer.Serialize(users);
         File.WriteAllText(path, json);
 
-        await using var dataDb =
-            new NpgsqlCommand("INSERT INTO users (username, password_hash) VALUES (@u, @p)", connectionDB);
-        dataDb.Parameters.AddWithValue("u", data.Username);
-        dataDb.Parameters.AddWithValue("p", data.Password);
-        await dataDb.ExecuteNonQueryAsync();
+        try
+        {
+            await using var check =
+                new NpgsqlCommand("SELECT EXISTS(SELECT 1 FROM users WHERE username @u)", connectionDB);
+            check.Parameters.AddWithValue("u", data.Username);
+            
+            
+            await using var dataDb =
+                new NpgsqlCommand("INSERT INTO users (username, hash_password) VALUES (@u, @p)", connectionDB);
+            dataDb.Parameters.AddWithValue("u", data.Username);
+            dataDb.Parameters.AddWithValue("p", data.Password);
+            await dataDb.ExecuteNonQueryAsync();
+        }
+        catch
+        {
+            Console.WriteLine("Error");
+        }
+
         
         context.Response.Close();
         

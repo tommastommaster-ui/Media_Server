@@ -1,12 +1,12 @@
 
 services:
-  db:
+  postgres:
     image: postgres:16
-    container_name: postgresSQl
+    container_name: postgresSQL
     environment:
-      POSTGRES_USER: mrp
-      POSTGRES_PASSWORD: 1234!
-      POSTGRES_DB: mrpdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
@@ -19,7 +19,7 @@ services:
     ports:
       - "8081:8080"
     depends_on:
-      - db
+      - postgres
 
 volumes:
   mrp-data:
