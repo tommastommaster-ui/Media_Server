@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace MediaServer;
 
-public class RegisterNewUser
+public class CredUser
 {
     [JsonPropertyName("username")]
     public string Username { get; set; } = "";

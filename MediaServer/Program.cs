@@ -10,14 +10,14 @@ const string dbConnect = "Host=localhost;Port=5432;Username=postgres;Password=my
 
 string path = "/Users/simon/RiderProjects/MediaServer/MediaServer/usersDatenbank.json";
 
-var users = new List<RegisterNewUser>();
+var users = new List<CredUser>();
 if (File.Exists(path))
 {
-    users = JsonSerializer.Deserialize<List<RegisterNewUser>>(File.ReadAllText("usersDatenbank.json"));
+    users = JsonSerializer.Deserialize<List<CredUser>>(File.ReadAllText("usersDatenbank.json"));
     
     if (users == null)
     {
-        users = new List<RegisterNewUser>();
+        users = new List<CredUser>();
     }
 }
 
@@ -50,9 +50,7 @@ while (true)
 
     if (request.HttpMethod == "POST" && request.Url!.AbsolutePath == "/api/users/register")
     {
-        Console.WriteLine(request.ContentType);
-        var data = await JsonSerializer.DeserializeAsync<RegisterNewUser>(request.InputStream);
-        
+        var data = await JsonSerializer.DeserializeAsync<CredUser>(request.InputStream);
         Console.WriteLine($"Username:{data?.Username}");
         Console.Write($"Password:{data?.Password}");
         users.Add(data);
@@ -61,37 +59,69 @@ while (true)
 
         try
         {
-            await using var check =
-                new NpgsqlCommand("SELECT EXISTS(SELECT 1 FROM users WHERE username @u)", connectionDB);
-            check.Parameters.AddWithValue("u", data.Username);
-            
-            
-            await using var dataDb =
-                new NpgsqlCommand("INSERT INTO users (username, hash_password) VALUES (@u, @p)", connectionDB);
+            await using var dataDb = new NpgsqlCommand("INSERT INTO users (username, hash_password) VALUES (@u, @p)", connectionDB);
             dataDb.Parameters.AddWithValue("u", data.Username);
             dataDb.Parameters.AddWithValue("p", data.Password);
             await dataDb.ExecuteNonQueryAsync();
-        }
-        catch
-        {
-            Console.WriteLine("Error");
-        }
 
-        
+            context.Response.StatusCode = 201;
+        }
+        catch (PostgresException exception) when (exception.SqlState == "23505")
+        {
+            context.Response.StatusCode = 409;
+            Console.WriteLine("Error username is already in db");
+            throw;
+        }
         context.Response.Close();
-        
     }
     
     if (request.HttpMethod == "POST" && request.Url!.AbsolutePath == "/api/users/login")
     {
-        Console.WriteLine(request.ContentType);
-        var data = await JsonSerializer.DeserializeAsync<RegisterNewUser>(request.InputStream);
+        var data = await JsonSerializer.DeserializeAsync<CredUser>(request.InputStream);
+        if (data == null)
+        {
+            context.Response.StatusCode = 400;
+            context.Response.Close();
+            continue;
+        }
         Console.WriteLine($"Username:{data?.Username}");
         Console.Write($"Password:{data?.Password}");
+        try
+        {
+            await using var dataDb =
+                new NpgsqlCommand("SELECT id, hash_password FROM users WHERE username = @u", connectionDB);
+            dataDb.Parameters.AddWithValue("u", data.Username);
+            await using var userExists = await dataDb.ExecuteReaderAsync();
+
+            if (await userExists.ReadAsync() == false)
+            {
+                //username nicht in db
+                context.Response.StatusCode = 401;
+            }
+            else
+            {
+                string passwordFromUser = userExists.GetString(1);
+                if (passwordFromUser != data.Password)
+                {
+                    context.Response.StatusCode = 401;
+                }
+                else
+                {
+                    context.Response.StatusCode = 200;
+                }
+            }
+
+            //passwort von der zeile wo user ist
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+
         context.Response.Close();
         
     }
-    
-    //auf postgres setzen und fertig
+ 
     
 }
