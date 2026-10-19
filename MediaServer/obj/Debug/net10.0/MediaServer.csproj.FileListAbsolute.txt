@@ -18,3 +18,4 @@
 /Users/simon/RiderProjects/MediaServer/MediaServer/bin/Debug/net10.0/Npgsql.dll
 /Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaServer.csproj.AssemblyReference.cache
 /Users/simon/RiderProjects/MediaServer/MediaServer/obj/Debug/net10.0/MediaSer.FD23F344.Up2Date
+/Users/simon/RiderProjects/MediaServer/MediaServer/bin/Debug/net10.0/BCrypt-Net-Next.dll

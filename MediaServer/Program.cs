@@ -60,8 +60,9 @@ while (true)
         try
         {
             await using var dataDb = new NpgsqlCommand("INSERT INTO users (username, hash_password) VALUES (@u, @p)", connectionDB);
+            string hash = BCrypt.Net.BCrypt.HashPassword(data.Password);
             dataDb.Parameters.AddWithValue("u", data.Username);
-            dataDb.Parameters.AddWithValue("p", data.Password);
+            dataDb.Parameters.AddWithValue("p", hash);
             await dataDb.ExecuteNonQueryAsync();
 
             context.Response.StatusCode = 201;
@@ -70,7 +71,6 @@ while (true)
         {
             context.Response.StatusCode = 409;
             Console.WriteLine("Error username is already in db");
-            throw;
         }
         context.Response.Close();
     }
@@ -101,7 +101,7 @@ while (true)
             else
             {
                 string passwordFromUser = userExists.GetString(1);
-                if (passwordFromUser != data.Password)
+                if (BCrypt.Net.BCrypt.Verify(data.Password, passwordFromUser) == false)
                 {
                     context.Response.StatusCode = 401;
                 }
