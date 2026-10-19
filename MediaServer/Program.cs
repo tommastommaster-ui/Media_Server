@@ -8,20 +8,6 @@ using Npgsql;
 //datenbank kurz
 const string dbConnect = "Host=localhost;Port=5432;Username=postgres;Password=mysecretpassword;Database=postgres";
 
-string path = "/Users/simon/RiderProjects/MediaServer/MediaServer/usersDatenbank.json";
-
-var users = new List<CredUser>();
-if (File.Exists(path))
-{
-    users = JsonSerializer.Deserialize<List<CredUser>>(File.ReadAllText("usersDatenbank.json"));
-    
-    if (users == null)
-    {
-        users = new List<CredUser>();
-    }
-}
-
-
 
 var listner = new HttpListener();
 listner.Prefixes.Add("http://localhost:8080/");
@@ -53,19 +39,23 @@ while (true)
         var data = await JsonSerializer.DeserializeAsync<CredUser>(request.InputStream);
         Console.WriteLine($"Username:{data?.Username}");
         Console.Write($"Password:{data?.Password}");
-        users.Add(data);
-        var json = JsonSerializer.Serialize(users);
-        File.WriteAllText(path, json);
-
+        
         try
         {
             await using var dataDb = new NpgsqlCommand("INSERT INTO users (username, hash_password) VALUES (@u, @p)", connectionDB);
-            string hash = BCrypt.Net.BCrypt.HashPassword(data.Password);
-            dataDb.Parameters.AddWithValue("u", data.Username);
-            dataDb.Parameters.AddWithValue("p", hash);
-            await dataDb.ExecuteNonQueryAsync();
+            if (string.IsNullOrWhiteSpace(data.Username) || string.IsNullOrWhiteSpace(data.Password))
+            {
+                context.Response.StatusCode = 469;
+            }
+            else
+            {
+                string hash = BCrypt.Net.BCrypt.HashPassword(data.Password);
+                dataDb.Parameters.AddWithValue("u", data.Username);
+                dataDb.Parameters.AddWithValue("p", hash);
+                await dataDb.ExecuteNonQueryAsync();
+                context.Response.StatusCode = 201;
+            }
 
-            context.Response.StatusCode = 201;
         }
         catch (PostgresException exception) when (exception.SqlState == "23505")
         {
