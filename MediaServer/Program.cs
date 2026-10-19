@@ -78,8 +78,7 @@ while (true)
         Console.Write($"Password:{data?.Password}");
         try
         {
-            await using var dataDb =
-                new NpgsqlCommand("SELECT id, hash_password FROM users WHERE username = @u", connectionDB);
+            await using var dataDb = new NpgsqlCommand("SELECT id, hash_password FROM users WHERE username = @u", connectionDB);
             dataDb.Parameters.AddWithValue("u", data.Username);
             await using var userExists = await dataDb.ExecuteReaderAsync();
 
@@ -91,13 +90,28 @@ while (true)
             else
             {
                 string passwordFromUser = userExists.GetString(1);
+                int userId = userExists.GetInt32(0);
                 if (BCrypt.Net.BCrypt.Verify(data.Password, passwordFromUser) == false)
                 {
                     context.Response.StatusCode = 401;
                 }
                 else
                 {
+                    userExists.CloseAsync();
+                    string authToken = Guid.NewGuid().ToString();
+                    
+                    await using var giveToken = new NpgsqlCommand("INSERT INTO tokens (token, user_id) VALUES (@t, @id)", connectionDB);
+                    giveToken.Parameters.AddWithValue("t", authToken);
+                    giveToken.Parameters.AddWithValue("id", userId);
+                    await giveToken.ExecuteNonQueryAsync();
+                    
                     context.Response.StatusCode = 200;
+                    
+                    byte[] buffer = JsonSerializer.SerializeToUtf8Bytes(new { authToken });
+                    context.Response.StatusCode = 200;
+                    context.Response.ContentType = "application/json";
+                    context.Response.ContentLength64 = buffer.Length;
+                    await context.Response.OutputStream.WriteAsync(buffer);
                 }
             }
 
