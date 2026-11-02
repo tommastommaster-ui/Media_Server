@@ -8,4 +8,6 @@ public class CredUser
     public string Username { get; set; } = "";
     [JsonPropertyName("password")]
     public string Password { get; set; } = "";
+    
+    public int Id { get; set; }
 }

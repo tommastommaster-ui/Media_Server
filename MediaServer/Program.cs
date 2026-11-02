@@ -1,8 +1,6 @@
 ﻿using System.Net;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using MediaServer;
+using MediaServer.Handler;
 using Npgsql;
 
 //datenbank kurz
@@ -17,115 +15,53 @@ Console.WriteLine("Server startet");
 await using var connectionDB = new NpgsqlConnection(dbConnect);
 await connectionDB.OpenAsync();
 Console.WriteLine("Verbunden mit DB!:)");
+var auth = new AuthHandler();
+var media = new MediaHandler();
 
 while (true)
 {
     //hier den server am laufen halten
     var context = await listner.GetContextAsync();
     var request = context.Request;
-    var response = context.Response;
 
     
-    if (request.HttpMethod == "GET")
-    {
-        var buffer = Encoding.UTF8.GetBytes("Hello Server");
-        response.StatusCode = 200;
-        response.ContentLength64 = buffer.Length;
-        await response.OutputStream.WriteAsync(buffer);
-    }
-
     if (request.HttpMethod == "POST" && request.Url!.AbsolutePath == "/api/users/register")
     {
-        var data = await JsonSerializer.DeserializeAsync<CredUser>(request.InputStream);
-        Console.WriteLine($"Username:{data?.Username}");
-        Console.Write($"Password:{data?.Password}");
-        
-        try
-        {
-            await using var dataDb = new NpgsqlCommand("INSERT INTO users (username, hash_password) VALUES (@u, @p)", connectionDB);
-            if (string.IsNullOrWhiteSpace(data.Username) || string.IsNullOrWhiteSpace(data.Password))
-            {
-                context.Response.StatusCode = 469;
-            }
-            else
-            {
-                string hash = BCrypt.Net.BCrypt.HashPassword(data.Password);
-                dataDb.Parameters.AddWithValue("u", data.Username);
-                dataDb.Parameters.AddWithValue("p", hash);
-                await dataDb.ExecuteNonQueryAsync();
-                context.Response.StatusCode = 201;
-            }
-
-        }
-        catch (PostgresException exception) when (exception.SqlState == "23505")
-        {
-            context.Response.StatusCode = 409;
-            Console.WriteLine("Error username is already in db");
-        }
-        context.Response.Close();
+        await auth.RegisterUserAsync(context, connectionDB);
+        continue;
     }
     
     if (request.HttpMethod == "POST" && request.Url!.AbsolutePath == "/api/users/login")
     {
-        var data = await JsonSerializer.DeserializeAsync<CredUser>(request.InputStream);
-        if (data == null)
-        {
-            context.Response.StatusCode = 400;
-            context.Response.Close();
-            continue;
-        }
-        Console.WriteLine($"Username:{data?.Username}");
-        Console.Write($"Password:{data?.Password}");
-        try
-        {
-            await using var dataDb = new NpgsqlCommand("SELECT id, hash_password FROM users WHERE username = @u", connectionDB);
-            dataDb.Parameters.AddWithValue("u", data.Username);
-            await using var userExists = await dataDb.ExecuteReaderAsync();
-
-            if (await userExists.ReadAsync() == false)
-            {
-                //username nicht in db
-                context.Response.StatusCode = 401;
-            }
-            else
-            {
-                string passwordFromUser = userExists.GetString(1);
-                int userId = userExists.GetInt32(0);
-                if (BCrypt.Net.BCrypt.Verify(data.Password, passwordFromUser) == false)
-                {
-                    context.Response.StatusCode = 401;
-                }
-                else
-                {
-                    userExists.CloseAsync();
-                    string authToken = Guid.NewGuid().ToString();
-                    
-                    await using var giveToken = new NpgsqlCommand("INSERT INTO tokens (token, user_id) VALUES (@t, @id)", connectionDB);
-                    giveToken.Parameters.AddWithValue("t", authToken);
-                    giveToken.Parameters.AddWithValue("id", userId);
-                    await giveToken.ExecuteNonQueryAsync();
-                    
-                    context.Response.StatusCode = 200;
-                    
-                    byte[] buffer = JsonSerializer.SerializeToUtf8Bytes(new { authToken });
-                    context.Response.StatusCode = 200;
-                    context.Response.ContentType = "application/json";
-                    context.Response.ContentLength64 = buffer.Length;
-                    await context.Response.OutputStream.WriteAsync(buffer);
-                }
-            }
-
-            //passwort von der zeile wo user ist
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-
-        context.Response.Close();
-        
+        await auth.LoginUserAsync(context, connectionDB);
+        continue;
     }
- 
+
+    if (request.HttpMethod == "POST" && request.Url!.AbsolutePath == "/api/media")
+    {
+        await media.CreateMediaAsync(context, connectionDB);
+        continue;
+    }
     
+    //genere problem weil über noch ander db machen muss
+
+    string path = request.Url!.AbsolutePath;
+
+    if (request.HttpMethod == "DELETE" && path.StartsWith("/api/media"))
+    {
+        await media.DelteMedia(context, connectionDB);
+        continue;
+    }
+    
+    if (request.HttpMethod == "PUT" && path.StartsWith("/api/media"))
+    {
+        await media.UpdateMedia(context, connectionDB);
+        continue;
+    }
+
+    if (request.HttpMethod == "GET" && path.StartsWith("/api/media"))
+    {
+        await media.GetMediaAsync(context, connectionDB);
+        continue;
+    }
 }
